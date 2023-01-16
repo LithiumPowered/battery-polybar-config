@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 NOT_TIMER=5000 # in miliseconds
-NOT_ID=12
+NOT_ID=$(pidof polybar)
 
 # Get essid 
 ESSID="<i>$(iwconfig wlan0 | rg -o 'ESSID.*$' | choose -f : 1)</i>"
