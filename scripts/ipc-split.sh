@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
+WINDOW_PROP="$(xdotool getwindowfocus getwindowgeometry)"
+WINDOW_NAME="$(xdotool getwindowfocus getwindowname)"
 
-WIN_D="$(xdotool getwindowfocus getwindowgeometry | rg -o "Geometry:.*$" | choose -f : 1 | xargs -0)"
-WIN_X="$(choose -f x 0 <<< $WIN_D)"
-WIN_Y="$(choose -f x 1 <<< $WIN_D)"
+# Window Position
+WIN_P="$(rg -o "Position:.*$" <<< $WINDOW_PROP | choose 1 | xargs -0)"
+WIN_POS_X="$(choose -f , 0 <<< $WIN_P)"
 
-# Change split symbol depending on window dimensions
-[[ $WIN_X -gt $WIN_Y ]] && {
-  i3-msg split horizontal >/dev/null 2>&1
-  printf "|"
-} || {
-  i3-msg split vertical >/dev/null 2>&1
-  printf "-"
-}
+# Change Label based on x location
+INDICATOR=" " 
+[[ $WIN_POS_X -lt 20 ]] && INDICATOR="=" 
+[[ $WIN_POS_X -gt 20 ]] && INDICATOR="-"
+
+# If no window focused then blank indicator
+[[ "$WINDOW_NAME" == "i3" ]] && INDICATOR=" "
+
+printf "$INDICATOR"

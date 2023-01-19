@@ -3,9 +3,13 @@
 NOT_TIMER=5000 # in miliseconds
 NOT_ID=$(pidof polybar)
 
+for (( i=0; i< 3; ++i ));do
+DOTS+="."
 dunstify -r $NOT_ID -t $NOT_TIMER \
   "${USER^^} Network - Status" \
-  "..."
+  "$DOTS"
+ sleep 0.3
+done
 
 # Get ipinfo - exit early on failure
 if ! RES=$(curl -s 'https://ipinfo.io/json'); then
