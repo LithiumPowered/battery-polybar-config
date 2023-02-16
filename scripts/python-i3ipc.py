@@ -6,7 +6,7 @@ import subprocess
 i3 = Connection()
 
 def get_window_pos():
-    get_window_props = 'xdotool getwindowfocus getwindowgeometry | rg -o Position.*$ | choose 1'
+    get_window_props = 'xdotool getwindowfocus getwindowgeometry | grep -o "Position.*$" | cut -d " " -f2'
     direct_output = subprocess.check_output(get_window_props, shell=True)
     window_pos = direct_output.decode().replace("\n", "").split(',')
     return int(window_pos[0])
