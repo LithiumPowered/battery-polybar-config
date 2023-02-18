@@ -4,39 +4,47 @@ from i3ipc import Connection, Event
 import subprocess
 
 i3 = Connection()
-
-def get_window_pos():
-    get_window_props = 'xdotool getwindowfocus getwindowgeometry | grep -o "Position.*$" | cut -d " " -f2'
-    direct_output = subprocess.check_output(get_window_props, shell=True)
-    window_pos = direct_output.decode().replace("\n", "").split(',')
-    return int(window_pos[0])
+i3_marks = [ "Primary", "Secondary" ]
 
 def set_stack_hook(n):
-    subprocess.check_output('polybar-msg action "#stack.hook.{}"'.format(n), shell=True)
+    try: subprocess.check_output('polybar-msg action "#stack.hook.{}"'.format(n), shell=True)
+    except: pass
+
+def set_i3_mark(m):
+    try: i3.command("mark {}".format(m))
+    except: pass
 
 def set_indicator(i3, e):
     focused = i3.get_tree().find_focused()
 
+    if e.container.floating == "user_on":
+        window_floating = 1
+    else:
+        window_floating = 0
+
     if focused == None: 
         set_stack_hook(0)
     else:
-        if get_window_pos() <= 20: 
-            set_stack_hook(1)
-            i3.command('mark Primary')
+        window_cords = [ e.container.rect.x + 1, e.container.rect.y ]
+        primary_zone = 400 + focused.workspace().gaps.inner + 1
 
+        if window_cords[0] <= primary_zone and window_cords[1] <= primary_zone and not window_floating:
+            set_stack_hook(1)
+            set_i3_mark(i3_marks[0])
         else: 
             set_stack_hook(2)
-            i3.command('mark Secondary')
+            set_i3_mark(i3_marks[1])
 
 def reset_indicator(i3, e):
     set_stack_hook(0)
-    for mark in [ 'Primary', 'Secondary' ]:
+    for mark in i3_marks:
         [i3.command('unmark {}'.format(mark))]
 
-i3.on('workspace::focus', reset_indicator)
-i3.on('window::close', reset_indicator)
-i3.on('workspace::move', set_indicator)
-i3.on('window::focus', set_indicator)
+if __name__ == "__main__":
+    i3.on('workspace::focus', reset_indicator)
+    i3.on('window::close', reset_indicator)
+    i3.on('workspace::move', set_indicator)
+    i3.on('window::focus', set_indicator)
+    i3.main()
 
-# Main Loop
-i3.main()
+
